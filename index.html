@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif KBLI 2025</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --accent: #06b6d4;
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1e293b, #0f172a);
+            color: #1e293b;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .bg-glow {
+            position: fixed;
+            width: 40vw;
+            height: 40vw;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: -1;
+            filter: blur(50px);
+        }
+
+        .quiz-container { width: 100%; max-width: 600px; }
+
+        .quiz-card {
+            background: var(--glass);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: cardEntry 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @keyframes cardEntry {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .hero-img {
+            width: 100%;
+            height: 180px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            animation: float 5s ease-in-out infinite;
+        }
+
+        @keyframes float { 0.5% { transform: translateY(0); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
+
+        h1 { text-align: center; font-size: 1.75rem; font-weight: 800; color: #0f172a; margin: 0 0 10px 0; letter-spacing: -1px; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 30px; font-size: 0.9rem; }
+
+        /* SKELETON LOADING ANIMATION */
+        .skeleton {
+            background: #e2e8f0;
+            background: linear-gradient(90deg, #e2e8f0 25%, #f8fafc 50%, #e2e8f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+            border-radius: 12px;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        
+        .skele-text { height: 16px; width: 60%; margin: 0 auto 15px auto; }
+        .skele-input { height: 50px; width: 100%; margin-bottom: 20px; }
+        .skele-btn { height: 55px; width: 100%; border-radius: 12px; }
+
+        .loading-msg { text-align: center; font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-top: 15px; }
+
+        /* INPUT GROUPS */
+        .input-group { margin-bottom: 20px; position: relative; }
+        label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: #475569; }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        input[type="text"], input[type="email"] { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: 0.3s; background: #f8fafc; box-sizing: border-box; }
+        select { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; background: #f8fafc; cursor: pointer; appearance: none; }
+        input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+
+        /* PROGRESS & TIMER */
+        .header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .timer-info { display: flex; align-items: center; gap: 6px; font-weight: 800; color: #f59e0b; }
+        .progress-bar { height: 8px; background: #e2e8f0; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(to right, var(--primary), var(--accent)); width: 0%; transition: 0.4s ease; }
+
+        /* OPTIONS */
+        .question-box { display: none; animation: fadeIn 0.3s ease; }
+        .question-box.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .question-text { font-size: 1.15rem; font-weight: 700; margin-bottom: 20px; line-height: 1.5; }
+        
+        .flag-badge { display: inline-block; padding: 4px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; }
+        .flag-ss { background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; }
+        .flag-s { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+        .flag-m { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
+
+        .options label { display: block; background: #f8fafc; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; font-weight: 600; color: #334155; }
+        .options label:hover { border-color: var(--primary); background: white; }
+        .options label.selected { background: rgba(99, 102, 241, 0.05); border-color: var(--primary); color: var(--primary); }
+        .options input { display: none; }
+
+        /* BUTTONS */
+        .btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 20px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; width: 100%; border: 1px solid transparent; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2); }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 20px -5px rgba(99, 102, 241, 0.3); }
+
+        /* NAV DOTS */
+        .nav-dots { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
+        .dot { width: 40px; height: 40px; border-radius: 10px; background: #f1f5f9; border: 2px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: #64748b; cursor: pointer; transition: 0.2s; }
+        .dot.active { background: white; border-color: var(--primary); color: var(--primary); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2); transform: scale(1.15); z-index: 10; }
+        .dot.answered { background: var(--secondary); color: white; border-color: var(--secondary); }
+
+        @media (max-width: 480px) { .quiz-card { padding: 25px; } h1 { font-size: 1.5rem; } .question-text { font-size: 1rem; } .dot { width: 35px; height: 35px; } }
+    </style>
+</head>
+<body>
+    <div class="bg-glow" style="top: 0; left: 0;"></div>
+    <div class="bg-glow" style="bottom: 0; right: 0;"></div>
+
+    <div class="quiz-container">
+        <div class="quiz-card">
+            <!-- LANDING PAGE -->
+            <div id="landing-page">
+                <img src="./lomba.jpeg" alt="Hero" class="hero-img">
+                <h1>Kuis KBLI 2025</h1>
+                <p class="subtitle" id="load-subtitle">Buktikan kemampuan Anda di klasemen tertinggi!</p>
+
+                <!-- Skeleton View -->
+                <div id="skeleton-container">
+                    <div class="skeleton skele-text"></div>
+                    <div class="skeleton skele-input"></div>
+                    <div class="skeleton skele-input"></div>
+                    <div class="skeleton skele-input"></div>
+                    <div class="skeleton skele-btn"></div>
+                    <div class="loading-msg" id="loading-txt">Menyinkronkan data soal...</div>
+                </div>
+
+                <!-- Actual Inputs (Hidden initially) -->
+                <div id="real-inputs" style="display: none;">
+                    <div class="input-group">
+                        <label><i data-lucide="user"></i> Nama Lengkap</label>
+                        <input type="text" id="userName" placeholder="Nama lengkap Anda">
+                    </div>
+                    <div class="input-group">
+                        <label><i data-lucide="mail"></i> Email Aktif</label>
+                        <input type="email" id="userEmail" placeholder="email@bps.go.id">
+                    </div>
+                    <div class="input-group">
+                        <label><i data-lucide="building"></i> Satuan Kerja</label>
+                        <select id="userSatker">
+                            <option value="BPS Provinsi Sumatera Utara">BPS Provinsi Sumatera Utara</option>
+                        </select>
+                    </div>
+                    <button id="btnStart" class="btn btn-primary" onclick="mulaiKuis()">
+                        Masuk Kuis <i data-lucide="arrow-right"></i>
+                    </button>
+                    <button class="btn" onclick="location.href='leaderboard.html'" style="margin-top: 15px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">
+                        <i data-lucide="trophy"></i> Lihat Leaderboard
+                    </button>
+                </div>
+            </div>
+
+            <!-- QUIZ PAGE -->
+            <div id="quiz-page" style="display:none;">
+                <div class="header-info">
+                    <div id="progress-text" style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Soal 1 / 10</div>
+                    <div class="timer-info"><i data-lucide="clock" style="width:16px;"></i> <span id="timer">05:00</span></div>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+                <div class="nav-dots" id="nav-dots"></div>
+                <form id="quizForm"></form>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button id="btnBack" onclick="navigate(-1)" class="btn" style="background:#f1f5f9; color:#475569; flex: 1.2; display: none;"><i data-lucide="chevron-left"></i> Kembali</button>
+                    <button id="btnNext" onclick="navigate(1)" class="btn btn-primary" style="flex: 2;">Lanjut <i data-lucide="chevron-right"></i></button>
+                    <button id="btnKirim" onclick="prosesJawaban()" class="btn btn-primary" style="display:none; flex: 2; background: #22c55e;">Kirim <i data-lucide="send"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const _s = [
+            "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J3UWw3eEZFOXAwTEFqR0hhQzkxRDh3ZWRtSnZnMWo0cWZrY1pQN29saUxlc0R0Z1paeHdMajhnV00tTTZKT0p5WGhaQS9leGVj",
+            "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J3cmtEa0lQZTJwUWdNbjA0ZVVrVTNrLUN2YjY0ODU2eGNuR1ExWWotVk53VHZpbW1vZlVfTHRHR3ZqenQ5eVRqTlhrQS9leGVj"
+        ];
+        const URL_GET_SOAL = atob(_s[0]);
+        const URL_POST_JAWABAN = atob(_s[1]);
+        let databaseSoal = [];
+        let timerInterval;
+        const TOTAL_WAKTU = 300;
+        let sisaWaktu = TOTAL_WAKTU;
+        let currentIdx = 0;
+        let userIP = "N/A";
+
+        window.onload = async () => {
+            lucide.createIcons();
+            if (localStorage.getItem('kuis_selesai')) {
+                // Biarkan user melihat leaderboard atau reset jika ingin test ulang
+            }
+            await loadSoal();
+            fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>userIP=d.ip).catch(()=>{});
+        };
+
+        async function loadSoal() {
+            const txt = document.getElementById('loading-txt');
+            try {
+                let allSoal = [];
+                const cache = localStorage.getItem('kuis_soal_cache');
+                const time = localStorage.getItem('kuis_soal_time');
+                if (cache && (Date.now() - time < 86400000)) {
+                    allSoal = JSON.parse(cache);
+                } else {
+                    txt.innerText = "Mengambil paket soal terbaru...";
+                    const res = await fetch(URL_GET_SOAL);
+                    allSoal = await res.json();
+                    localStorage.setItem('kuis_soal_cache', JSON.stringify(allSoal));
+                    localStorage.setItem('kuis_soal_time', Date.now());
+                }
+
+                txt.innerText = "Menyortir tingkat kesulitan...";
+                const filterAndShuffle = (data, targetFlag, count) => {
+                    return data.filter(s => {
+                        const f = s.flag || s.Flag || "";
+                        return f.toString().trim().toUpperCase() === targetFlag.toUpperCase();
+                    }).sort(() => Math.random() - 0.5).slice(0, count);
+                };
+
+                const ss = filterAndShuffle(allSoal, "SS", 3);
+                const s = filterAndShuffle(allSoal, "S", 4);
+                const m = filterAndShuffle(allSoal, "M", 3);
+                databaseSoal = [...ss, ...s, ...m].sort(() => Math.random() - 0.5);
+
+                if (databaseSoal.length < 10) {
+                    const extra = allSoal.filter(s => !databaseSoal.includes(s)).sort(()=>Math.random()-0.5).slice(0, 10-databaseSoal.length);
+                    databaseSoal = [...databaseSoal, ...extra].sort(()=>Math.random()-0.5);
+                }
+
+                setTimeout(() => {
+                    document.getElementById('skeleton-container').style.display = 'none';
+                    document.getElementById('real-inputs').style.display = 'block';
+                    lucide.createIcons();
+                }, 800);
+            } catch (e) { txt.innerText = "Gagal memuat. Periksa internet!"; }
+        }
+
+        function mulaiKuis() {
+            const n = document.getElementById('userName').value;
+            const e = document.getElementById('userEmail').value;
+            if(!n || !e) return alert("Lengkapi data!");
+            document.getElementById('landing-page').style.display = 'none';
+            document.getElementById('quiz-page').style.display = 'block';
+            tampilkanSoal(); startTimer();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                let m = Math.floor(sisaWaktu / 60); let s = sisaWaktu % 60;
+                document.getElementById('timer').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                if(sisaWaktu-- <= 0) { clearInterval(timerInterval); prosesJawaban(true); }
+            }, 1000);
+        }
+
+        function tampilkanSoal() {
+            const form = document.getElementById('quizForm');
+            const dots = document.getElementById('nav-dots');
+            form.innerHTML = ""; dots.innerHTML = "";
+            databaseSoal.forEach((item, i) => {
+                const box = document.createElement('div');
+                box.className = `question-box ${i === currentIdx ? 'active' : ''}`;
+                const f = (item.flag || item.Flag || "M").toString().trim().toUpperCase();
+                box.innerHTML = `
+                    <div class="flag-badge flag-${f.toLowerCase()}">${f}</div>
+                    <div class="question-text">${i+1}. ${item.Pertanyaan}</div>
+                    <div class="options">
+                        <label onclick="sel(${i},'A',this)"><input type="radio" name="s${i}" value="A"> A. ${item.Pilihan_A}</label>
+                        <label onclick="sel(${i},'B',this)"><input type="radio" name="s${i}" value="B"> B. ${item.Pilihan_B}</label>
+                        <label onclick="sel(${i},'C',this)"><input type="radio" name="s${i}" value="C"> C. ${item.Pilihan_C}</label>
+                        <label onclick="sel(${i},'D',this)"><input type="radio" name="s${i}" value="D"> D. ${item.Pilihan_D}</label>
+                    </div>
+                `;
+                form.appendChild(box);
+                const dot = document.createElement('div');
+                dot.className = `dot ${i === currentIdx ? 'active' : ''}`;
+                dot.id = `dot-${i}`; dot.innerText = i + 1;
+                dot.onclick = () => jumpToQuestion(i);
+                dots.appendChild(dot);
+            });
+            updateUI();
+        }
+
+        function sel(idx, val, el) {
+            el.parentElement.querySelectorAll('label').forEach(l=>l.classList.remove('selected'));
+            el.classList.add('selected'); document.getElementById(`dot-${idx}`).classList.add('answered');
+        }
+
+        function jumpToQuestion(idx) {
+            document.querySelectorAll('.question-box')[currentIdx].classList.remove('active');
+            currentIdx = idx; document.querySelectorAll('.question-box')[currentIdx].classList.add('active');
+            updateUI();
+        }
+
+        function navigate(s) { jumpToQuestion(currentIdx + s); }
+
+        function updateUI() {
+            const fill = ((currentIdx + 1) / 10) * 100;
+            document.getElementById('progress-fill').style.width = fill + '%';
+            document.getElementById('progress-text').innerText = `Soal ${currentIdx + 1} / 10`;
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentIdx));
+            document.getElementById('btnBack').style.display = currentIdx === 0 ? 'none' : 'flex';
+            if (currentIdx === 9) {
+                document.getElementById('btnNext').style.display = 'none';
+                document.getElementById('btnKirim').style.display = 'flex';
+            } else {
+                document.getElementById('btnNext').style.display = 'flex';
+                document.getElementById('btnKirim').style.display = 'none';
+            }
+            lucide.createIcons();
+        }
+
+        async function prosesJawaban(auto = false) {
+            const p = {
+                Nama: document.getElementById('userName').value,
+                Email: document.getElementById('userEmail').value.trim().toLowerCase(),
+                AsalSatker: document.getElementById('userSatker').value,
+                IP_User: userIP, Nilai: "-", Waktu: TOTAL_WAKTU-sisaWaktu, Timestamp: new Date().toLocaleString()
+            };
+            databaseSoal.forEach((it, i) => {
+                const r = document.querySelector(`input[name="s${i}"]:checked`);
+                p[`id_soal${i+1}`] = it.id; p[`a${i+1}`] = r ? r.value : "";
+            });
+            if(!auto && Object.keys(p).some(k=>k.startsWith('a')&&p[k]==="")) return alert("Ada soal belum dijawab!");
+            clearInterval(timerInterval);
+            document.getElementById('btnKirim').disabled = true;
+            document.getElementById('btnKirim').innerText = "Mengirim...";
+            try {
+                await fetch(URL_POST_JAWABAN, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
+                alert("Kuis Selesai! Terima kasih.");
+                localStorage.setItem('kuis_selesai', 'true');
+                location.reload();
+            } catch (e) { alert("Gagal!"); }
+        }
+    </script>
+</body>
+</html>
